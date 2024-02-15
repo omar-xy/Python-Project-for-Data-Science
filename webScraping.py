@@ -1,34 +1,30 @@
-from bs4 import BeautifulSoup # this module helps in web scrapping.
-import requests
-
-# soup = BeautifulSoup(requests.get('https://www.cricbuzz.com/cricket-match/live-scores').text, 'html5lib')
-html="<!DOCTYPE html><html><head><title>Page Title</title></head><body><h3><b id='boldest'>Lebron James</b></h3><p> Salary: $ 92,000,000 </p><h3> Stephen Curry</h3><p> Salary: $85,000, 000 </p><h3> Kevin Durant </h3><p> Salary: $73,200, 000</p></body></html>"
-#  To parse a document, pass it into the BeautifulSoup constructor. The BeautifulSoup object represents the document as a nested data structure:
-soup = BeautifulSoup(html, 'html5lib')
-# We can use the method prettify() to display the HTML in the nested structure:
-# print(soup.prettify())
+import pandas as pd
+import requests as rq
+from bs4 import BeautifulSoup
+import warnings
+# Ignore all warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
-# The tag object corresponds to an HTML tag in the original document.
+url='https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/amazon_data_webpage.html'
+data=rq.get(url).text
+soup=BeautifulSoup(data, 'html5lib')
 tag_obj = soup.title
-# print('this is the title', tag_obj)
-# print('this is the type ', type(tag_obj))
+print(tag_obj)
 
+amzon_data = pd.DataFrame(columns=["Date", "Open", "High", "Low", "Close", "Volume"])
 
-# children, Parents, siblings
-# tag_parent = tag_obj.parent
-# print(tag_parent)
+# First we isolate the body of the table which contains all the information
+# Then we loop through each row and find all the column values for each row
+for row in soup.find("tbody").find_all('tr'):
+    col = row.find_all("td")
+    date = col[0].text
+    Open = col[1].text
+    high = col[2].text
+    low = col[3].text
+    close = col[4].text
+    volume = col[5].text
 
-# sibling_1 =tag_obj.next_sibling
-# print(sibling_1)
-# sibling_2 =sibling_1.next_sibling
-# # print(sibling_2)
-# tag_child = tag_obj.b
-# tag_child.get('id')
-table="<table><tr><td id='flight'>Flight No</td><td>Launch site</td> <td>Payload mass</td></tr><tr> <td>1</td><td><a href='https://en.wikipedia.org/wiki/Florida'>Florida<a></td><td>300 kg</td></tr><tr><td>2</td><td><a href='https://en.wikipedia.org/wiki/Texas'>Texas</a></td><td>94 kg</td></tr><tr><td>3</td><td><a href='https://en.wikipedia.org/wiki/Florida'>Florida<a> </td><td>80 kg</td></tr></table>"
-tb_bs = BeautifulSoup(table, 'html5lib')
-tabl_rows= tb_bs.find_all('tr')
-print(tabl_rows)
-fr_row = tabl_rows[0]
-print('\n')
-print(fr_row)
+# Finally we append the data of each row to the table
+amzon_data = amzon_data._append({"Date":date, "Open":Open, "High":high, "Low":low, "Close":close, "Volume":volume}, ignore_index=True)
+print(amzon_data.head())
